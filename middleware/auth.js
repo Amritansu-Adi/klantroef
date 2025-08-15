@@ -1,5 +1,4 @@
 const jwt = require('jsonwebtoken');
-const { jwtSecret } = require('../config');
 
 // JWT authentication middleware
 module.exports = function authenticateToken(req, res, next) {
@@ -8,7 +7,7 @@ module.exports = function authenticateToken(req, res, next) {
     if (!token) {
         return res.status(401).json({ message: 'Unauthorized: No token provided' });
     }
-    jwt.verify(token, jwtSecret, (err, user) => {
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
         if (err) {
             return res.status(403).json({ message: 'Forbidden: Invalid token' });
         }

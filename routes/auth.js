@@ -6,7 +6,7 @@ const AdminUser = require('../models/AdminUser');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-// Register a new admin user
+// Register a new user
 router.post('/signup', async (req, res) => {
     const { email, password } = req.body;
     if (!email || !password) {
