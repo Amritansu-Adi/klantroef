@@ -4,7 +4,18 @@ const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const MediaAsset = require('../models/MediaAsset');
 const MediaViewLog = require('../models/MediaViewLog');
+
 const authenticateToken = require('../middleware/auth');
+const rateLimit = require('express-rate-limit');
+
+// Rate limiter for view logging (1 request per minute per IP for testing)
+const viewRateLimiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minute
+    max: 1,
+    message: 'Too many views logged from this IP, please try again later.',
+    standardHeaders: true,
+    legacyHeaders: false,
+});
 
 
 const STREAM_TOKEN_SECRET = process.env.STREAM_TOKEN_SECRET;
@@ -68,7 +79,7 @@ router.get('/stream/:token', (req, res) => {
 // 4. Handle edge cases like invalid IDs.
 
 // STEP 1 & 3 & 4: Log a view, secure it, and handle errors.
-router.post('/:id/view', authenticateToken, async (req, res) => {
+router.post('/:id/view', authenticateToken, viewRateLimiter, async (req, res) => {
     // Get the media ID from the request parameters.
     const { id } = req.params;
 
@@ -94,6 +105,7 @@ router.post('/:id/view', authenticateToken, async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 });
+
 
 
 // STEP 2 & 3 & 4: Get analytics, secure it, and handle errors.

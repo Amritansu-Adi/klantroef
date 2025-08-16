@@ -1,13 +1,17 @@
 require('dotenv').config();
+
 const express = require('express');
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
+const helmet = require('helmet');
 const app = express();
 
 const PORT = process.env.PORT || 3000;
 const MONGO_URI = process.env.MONGO_URI;
 const STREAM_TOKEN_SECRET = process.env.STREAM_TOKEN_SECRET;
 
+
+app.use(helmet());
 app.use(express.json());
 
 // Connect to MongoDB
@@ -19,7 +23,7 @@ mongoose.connect(MONGO_URI)
 app.use('/auth', require('./routes/auth'));
 app.use('/media', require('./routes/media'));
 
-// Add streaming access for a media asset at root
+// Simulate streaming access for a media asset at root
 app.get('/stream/:token', (req, res) => {
     const { token } = req.params;
     jwt.verify(token, STREAM_TOKEN_SECRET, (err, decoded) => {
@@ -30,7 +34,11 @@ app.get('/stream/:token', (req, res) => {
     });
 });
 
-// Start server
-app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-});
+// Only start server if not in test environment
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`Server running on http://localhost:${PORT}`);
+    });
+}
+
+module.exports = app;
